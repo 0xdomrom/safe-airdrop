@@ -25,6 +25,7 @@ yarn-error.log*
 
 #vscode environment
 /.vscode
+.idea/
 
 # auto-generated code
 /src/contracts

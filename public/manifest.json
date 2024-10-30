@@ -1,8 +1,8 @@
 {
   "short_name": "Safe Airdrop",
-  "name": "CSV Airdrop",
-  "description": "Upload your CSV transfer file to send arbitrarily many tokens of various amounts to a list of recipients.",
-  "iconPath": "logo.svg",
+  "name": "MultiTx",
+  "description": "Execute multiple arbitrary transactions from an imported csv file.",
+  "iconPath": "logo.png",
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",

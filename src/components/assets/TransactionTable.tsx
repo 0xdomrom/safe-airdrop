@@ -4,11 +4,8 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { areEqual, FixedSizeList as List } from "react-window";
 
 import { AssetTransfer } from "../../hooks/useCsvParser";
-import { Receiver } from "../Receiver";
 
-import { ERC20Token } from "./ERC20Token";
-
-type TransferTableProps = {
+type TransactionTableProps = {
   transferContent: AssetTransfer[];
 };
 
@@ -36,13 +33,13 @@ const ListHeader = (props: ListHeaderProps) => {
       }}
     >
       <div style={{ flex: 1, padding: 16, minWidth: 144 }}>
-        <Typography>Token</Typography>
+        <Typography>Address</Typography>
       </div>
       <div style={{ flex: 1, padding: 16, minWidth: 144 }}>
-        <Typography>Receiver</Typography>
+        <Typography>Eth Value</Typography>
       </div>
       <div style={{ flex: 1, padding: 16, minWidth: 80 }}>
-        <Typography>Amount</Typography>
+        <Typography>Calldata</Typography>
       </div>
     </Box>
   );
@@ -61,17 +58,21 @@ const Row = memo((props: RowProps) => {
           alignItems: "center",
         }}
       >
-        <ERC20Token tokenAddress={row.tokenAddress} symbol={row.symbol} />
-        <Receiver receiverAddress={row.receiver} receiverEnsName={row.receiverEnsName} />
         <div style={{ flex: "1", padding: 16, minWidth: 80 }}>
-          <Typography>{row.amount}</Typography>
+          <Typography>{row.address}</Typography>
+        </div>
+        <div style={{ flex: "1", padding: 16, minWidth: 80 }}>
+          <Typography>{row.value}</Typography>
+        </div>
+        <div style={{ flex: "1", padding: 16, minWidth: 80 }}>
+          <Typography>{row.calldata}</Typography>
         </div>
       </Box>
     </div>
   );
 }, areEqual);
 
-export const AssetTransferTable = (props: TransferTableProps) => {
+export const TransactionTable = (props: TransactionTableProps) => {
   const { transferContent } = props;
   return (
     <Box

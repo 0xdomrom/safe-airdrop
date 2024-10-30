@@ -1,65 +1,31 @@
 import { useCallback } from "react";
 import { usePapaParse } from "react-papaparse";
-import { transform } from "src/parser/transformation";
 import { validateRow } from "src/parser/validation";
 import { CodeWarning } from "src/stores/slices/messageSlice";
 
-import { useCollectibleTokenInfoProvider } from "./collectibleTokenInfoProvider";
-import { useTokenInfoProvider } from "./token";
-import { useEnsResolver } from "./useEnsResolver";
-
-export type Transfer = AssetTransfer | CollectibleTransfer;
-
-export type AssetTokenType = "erc20" | "native";
-export type CollectibleTokenType = "erc721" | "erc1155";
+export type Transfer = AssetTransfer;
 
 export interface AssetTransfer {
-  token_type: AssetTokenType;
-  receiver: string;
-  amount: string;
-  tokenAddress: string | null;
-  decimals: number;
-  symbol?: string;
-  receiverEnsName: string | null;
-  position?: number;
-}
-
-export interface CollectibleTransfer {
-  token_type: CollectibleTokenType;
-  from: string;
-  receiver: string;
-  tokenAddress: string;
-  tokenName?: string;
-  tokenId: string;
-  amount?: string;
-  receiverEnsName: string | null;
-}
-
-export interface UnknownTransfer {
-  token_type: "unknown";
+  address: string;
+  value: string;
+  calldata: string;
 }
 
 export type CSVRow = {
-  token_type?: string;
-  token_address: string;
-  receiver: string;
-  value?: string;
-  amount?: string;
-  id?: string;
+  address: string;
+  value: string;
+  calldata: string;
 };
 
 enum HEADER_FIELDS {
-  TYPE = "token_type",
-  TOKEN_ADDRESS = "token_address",
-  RECEIVER = "receiver",
+  ADDRESS = "address",
   VALUE = "value",
-  AMOUNT = "amount",
-  ID = "id",
+  CALLDATA = "calldata",
 }
 
 const generateWarnings = (
   // We need the row parameter because of the api of fast-csv
-  _row: Transfer | UnknownTransfer,
+  _row: Transfer,
   rowNumber: number,
   warnings: string[],
 ) => {
@@ -74,9 +40,6 @@ const generateWarnings = (
 const countLines = (text: string) => text.split(/\r\n|\r|\n/).length;
 
 export const useCsvParser = (): { parseCsv: (csvText: string) => Promise<[Transfer[], CodeWarning[]]> } => {
-  const collectibleTokenInfoProvider = useCollectibleTokenInfoProvider();
-  const tokenInfoProvider = useTokenInfoProvider();
-  const ensResolver = useEnsResolver();
   const { readString } = usePapaParse();
 
   const parseCsv = useCallback(
@@ -98,7 +61,7 @@ export const useCsvParser = (): { parseCsv: (csvText: string) => Promise<[Transf
               (field) => !Object.values<string>(HEADER_FIELDS).includes(field),
             );
 
-            if (unknownFields && unknownFields?.length > 0) {
+            if ((unknownFields && unknownFields?.length > 0) || results.meta.fields?.length !== 3) {
               resolve([
                 [],
                 [
@@ -115,16 +78,14 @@ export const useCsvParser = (): { parseCsv: (csvText: string) => Promise<[Transf
             const numberedRows = csvRows
               .map((row, idx) => ({ content: row, lineNum: idx + 1 }))
               // Empty rows have no receiver
-              .filter((row) => row.content.receiver !== undefined && row.content.receiver !== "");
-            const transformedRows: ((Transfer | UnknownTransfer) & { lineNum: number })[] = await Promise.all(
-              numberedRows.map((row) =>
-                transform(row.content, tokenInfoProvider, collectibleTokenInfoProvider, ensResolver).then(
-                  (transfer) => ({
-                    ...transfer,
-                    lineNum: row.lineNum,
-                  }),
-                ),
-              ),
+              .filter((row) => row.content.address !== undefined && row.content.address !== "");
+            const transformedRows: (Transfer & { lineNum: number })[] = await Promise.all(
+              numberedRows.map((row) => {
+                return {
+                  ...row.content,
+                  lineNum: row.lineNum,
+                };
+              }),
             );
 
             // validation warnings
@@ -148,7 +109,7 @@ export const useCsvParser = (): { parseCsv: (csvText: string) => Promise<[Transf
         });
       });
     },
-    [collectibleTokenInfoProvider, ensResolver, readString, tokenInfoProvider],
+    [readString],
   );
 
   return {

@@ -9,7 +9,7 @@ export interface CSVEditorState {
 }
 
 const initialState: CSVEditorState = {
-  csvContent: "token_type,token_address,receiver,amount,id",
+  csvContent: "address,value,calldata",
   transfers: [],
   parsing: false,
 };
