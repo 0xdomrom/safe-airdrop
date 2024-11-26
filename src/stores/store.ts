@@ -18,6 +18,7 @@ const rootReducer = combineReducers({
 export const makeStore = (initialState?: Record<string, any>) =>
   configureStore({
     reducer: rootReducer,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().prepend(listenerMiddlewareInstance.middleware),
     preloadedState: initialState,
   });
 
